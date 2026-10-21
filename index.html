@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality of Life ML App</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 850px; margin: 30px auto; padding: 15px; background: #f4f6f8; }
+        h1 { text-align: center; }
+        .box { background: white; padding: 20px; margin: 18px 0; border-radius: 10px; }
+        label { display: block; margin-top: 12px; }
+        input, select, button { box-sizing: border-box; width: 100%; padding: 10px; margin-top: 5px; }
+        button { margin-top: 18px; background: #1769aa; color: white; border: 0; cursor: pointer; border-radius: 5px; }
+        .result { font-weight: bold; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Quality of Life ML App</h1>
+
+    <div class="box">
+        <h2>1. Regression: Predict Age at Death</h2>
+        <form id="regressionForm">
+            <label>Gender</label>
+            <select id="reg_gender"><option>Female</option><option>Male</option></select>
+
+            <label>Occupation</label>
+            <select id="reg_occupation">
+                <option>Teacher</option><option>Office Worker</option><option>Manager</option>
+                <option>Freelancer</option><option>Scientist</option><option>Driver</option>
+                <option>Technician</option><option>Retail Worker</option><option>Consultant</option>
+                <option>Entrepreneur</option><option>Artist</option><option>Healthcare Worker</option>
+                <option>Engineer</option><option>Manual Laborer</option>
+            </select>
+
+            <label>Average work hours per day</label><input id="reg_work" type="number" min="0" step="0.01" value="8" required>
+            <label>Average rest hours per day</label><input id="reg_rest" type="number" min="0" step="0.01" value="8" required>
+            <label>Average sleep hours per day</label><input id="reg_sleep" type="number" min="0" step="0.01" value="7" required>
+            <label>Average exercise hours per day</label><input id="reg_exercise" type="number" min="0" step="0.01" value="1" required>
+            <button type="submit">Predict Age</button>
+        </form>
+        <p id="reg_result" class="result"></p>
+    </div>
+
+    <div class="box">
+        <h2>2. Classification: Predict Occupation</h2>
+        <form id="classificationForm">
+            <label>Gender</label>
+            <select id="class_gender"><option>Female</option><option>Male</option></select>
+            <label>Average work hours per day</label><input id="class_work" type="number" min="0" step="0.01" value="8" required>
+            <label>Average rest hours per day</label><input id="class_rest" type="number" min="0" step="0.01" value="8" required>
+            <label>Average sleep hours per day</label><input id="class_sleep" type="number" min="0" step="0.01" value="7" required>
+            <label>Average exercise hours per day</label><input id="class_exercise" type="number" min="0" step="0.01" value="1" required>
+            <button type="submit">Predict Occupation</button>
+        </form>
+        <p id="class_result" class="result"></p>
+    </div>
+
+<script>
+    function numberValue(id) {
+        return Number(document.getElementById(id).value);
+    }
+
+    document.getElementById("regressionForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const data = {
+            gender: document.getElementById("reg_gender").value,
+            occupation_type: document.getElementById("reg_occupation").value,
+            avg_work_hours_per_day: numberValue("reg_work"),
+            avg_rest_hours_per_day: numberValue("reg_rest"),
+            avg_sleep_hours_per_day: numberValue("reg_sleep"),
+            avg_exercise_hours_per_day: numberValue("reg_exercise")
+        };
+        const response = await fetch("/predict/regression", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        document.getElementById("reg_result").textContent =
+            response.ok ? "Predicted age at death: " + result.prediction : "Error: " + JSON.stringify(result);
+    });
+
+    document.getElementById("classificationForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const data = {
+            gender: document.getElementById("class_gender").value,
+            avg_work_hours_per_day: numberValue("class_work"),
+            avg_rest_hours_per_day: numberValue("class_rest"),
+            avg_sleep_hours_per_day: numberValue("class_sleep"),
+            avg_exercise_hours_per_day: numberValue("class_exercise")
+        };
+        const response = await fetch("/predict/classification", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        document.getElementById("class_result").textContent =
+            response.ok ? "Predicted occupation: " + result.prediction : "Error: " + JSON.stringify(result);
+    });
+</script>
+</body>
+</html>
